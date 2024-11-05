@@ -1,0 +1,14 @@
+version: "3"
+services:
+  test_bot:
+    build:
+      context: docker
+      dockerfile: Dockerfile
+
+    image: mtb
+    network_mode: host
+
+    environment:
+      - "JAVA_OPTS="
+
+    restart: always
