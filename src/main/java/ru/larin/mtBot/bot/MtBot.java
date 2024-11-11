@@ -48,78 +48,87 @@ public class MtBot extends TelegramLongPollingBot {
         var chatId = update.getMessage().getChatId();
         if (message.contains(" ")) {
             String formattedText;
-
             String[] amountAndCode = update.getMessage().getText().split(" ");
             if (amountAndCode.length == 2 && containsSomeCodes(amountAndCode)) {
                 //dateForApi = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                 String code = amountAndCode[0];
                 int amount = Integer.parseInt(amountAndCode[1]);
+                if (notNegative(amount)) {
 
-                String currencyRate = "";
-                switch (code) {
-                    case "usd", "Usd", "USD" -> {
-                        try {
-                            currencyRate = mtBotService.getUSDMt();
-                        } catch (ServiceException e) {
-                            LOG.error("Error response rate USD");
+
+                    String currencyRate = "";
+                    switch (code) {
+                        case "usd", "Usd", "USD" -> {
+                            try {
+                                currencyRate = mtBotService.getUSDMt();
+                            } catch (ServiceException e) {
+                                LOG.error("Error response rate USD");
+                            }
+                        }
+                        case "eur", "Eur", "EUR" -> {
+                            try {
+                                currencyRate = mtBotService.getEURMt();
+                            } catch (ServiceException e) {
+                                LOG.error("Error response rate EUR");
+                            }
+                        }
+                        case "cny", "Cny", "CNY" -> {
+                            try {
+                                currencyRate = mtBotService.getCNYMt();
+                            } catch (ServiceException e) {
+                                LOG.error("Error response rate CNY");
+                            }
                         }
                     }
-                    case "eur", "Eur", "EUR" -> {
-                        try {
-                            currencyRate = mtBotService.getEURMt();
-                        } catch (ServiceException e) {
-                            LOG.error("Error response rate EUR");
-                        }
-                    }
-                    case "cny", "Cny", "CNY" -> {
-                        try {
-                            currencyRate = mtBotService.getCNYMt();
-                        } catch (ServiceException e) {
-                            LOG.error("Error response rate CNY");
-                        }
-                    }
+                    double totalAmount = amount * strToDb(currencyRate);
+                    var text = "Вы переводите %s:\n" +
+                            "%s*%s = %s";
+                    formattedText = String.format(text, amountAndCode[0], String.valueOf(amount), String.valueOf(currencyRate), String.valueOf(totalAmount));
+                    sendMessage(chatId, formattedText);
+                } else {
+                    sendMessage(chatId, "Введите положительную сумму");
                 }
-                double totalAmount = amount * strToDb(currencyRate);
-                var text = "Вы переводите %s:\n" +
-                        "%s*%s = %s";
-                formattedText = String.format(text, amountAndCode[0], String.valueOf(amount), String.valueOf(currencyRate), String.valueOf(totalAmount));
-                sendMessage(chatId, formattedText);
             } else if (amountAndCode.length == 3 && containsSomeCodes(amountAndCode)) {
                 dateForApi = transDate(amountAndCode[2]);
                 String code = amountAndCode[0];
                 int amount = Integer.parseInt(amountAndCode[1]);
-
-                String currencyRate = "";
-                switch (code) {
-                    case "usd", "Usd", "USD" -> {
-                        try {
-                            currencyRate = mtBotService.getUSDMt();
-                        } catch (ServiceException e) {
-                            LOG.error("Error response rate USD");
+                if (notNegative(amount)) {
+                    String currencyRate = "";
+                    switch (code) {
+                        case "usd", "Usd", "USD" -> {
+                            try {
+                                currencyRate = mtBotService.getUSDMt();
+                            } catch (ServiceException e) {
+                                LOG.error("Error response rate USD");
+                            }
+                        }
+                        case "eur", "Eur", "EUR" -> {
+                            try {
+                                currencyRate = mtBotService.getEURMt();
+                            } catch (ServiceException e) {
+                                LOG.error("Error response rate EUR");
+                            }
+                        }
+                        case "cny", "Cny", "CNY" -> {
+                            try {
+                                currencyRate = mtBotService.getCNYMt();
+                            } catch (ServiceException e) {
+                                LOG.error("Error response rate CNY");
+                            }
                         }
                     }
-                    case "eur", "Eur", "EUR" -> {
-                        try {
-                            currencyRate = mtBotService.getEURMt();
-                        } catch (ServiceException e) {
-                            LOG.error("Error response rate EUR");
-                        }
-                    }
-                    case "cny", "Cny", "CNY" -> {
-                        try {
-                            currencyRate = mtBotService.getCNYMt();
-                        } catch (ServiceException e) {
-                            LOG.error("Error response rate CNY");
-                        }
-                    }
+                    double totalAmount = amount * strToDb(currencyRate);
+                    var text = "Вы переводите %s по курсу %s\n" +
+                            "%s*%s = %s";
+                    formattedText = String.format(text, amountAndCode[0], amountAndCode[2], String.valueOf(amount), String.valueOf(currencyRate), String.valueOf(totalAmount));
+                    sendMessage(chatId, formattedText);
+                } else {
+                    sendMessage(chatId, "Введите положительную сумму");
                 }
-                double totalAmount = amount * strToDb(currencyRate);
-                var text = "Вы переводите %s по курсу %s\n" +
-                        "%s*%s = %s";
-                formattedText = String.format(text, amountAndCode[0], amountAndCode[2], String.valueOf(amount), String.valueOf(currencyRate), String.valueOf(totalAmount));
-                sendMessage(chatId, formattedText);
+            } else {
+                sendMessage(chatId, "Неизвестная команда\nДля просмотра команд /help");
             }
-        }else if (message.contains("/")) {
+        } else if (message.contains("/")) {
             dateForApi = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
             switch (message) {
                 case START -> {
@@ -146,7 +155,7 @@ public class MtBot extends TelegramLongPollingBot {
                 }
             }
         } else {
-            sendMessage(chatId, "Ошибка! ```Проверьте правильность``` ");
+            sendMessage(chatId, "Неизвестная команда\nДля просмотра команд /help");
         }
     }
 

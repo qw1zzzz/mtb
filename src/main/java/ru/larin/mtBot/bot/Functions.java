@@ -42,4 +42,11 @@ public class Functions {
         }
         return new String(buf);
     }
+
+    public static boolean notNegative(int num) {
+        if (num >= 0) {
+            return true;
+        }
+        return false;
+    }
 }
